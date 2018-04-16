@@ -10,14 +10,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <cinttypes>
 #include "statistics/stats_aggregator.h"
+#include <cinttypes>
 
 #include "catalog/catalog.h"
 #include "catalog/database_metrics_catalog.h"
-#include "catalog/table_metrics_catalog.h"
 #include "catalog/index_metrics_catalog.h"
 #include "catalog/query_metrics_catalog.h"
+#include "catalog/table_metrics_catalog.h"
 #include "concurrency/transaction_manager_factory.h"
 #include "index/index.h"
 #include "storage/storage_manager.h"
@@ -192,8 +192,9 @@ void StatsAggregator::UpdateMetrics() {
   auto storage_manager = storage::StorageManager::GetInstance();
 
   auto time_since_epoch = std::chrono::system_clock::now().time_since_epoch();
-  auto time_stamp = std::chrono::duration_cast<std::chrono::seconds>(
-                        time_since_epoch).count();
+  auto time_stamp =
+      std::chrono::duration_cast<std::chrono::seconds>(time_since_epoch)
+          .count();
 
   auto database_count = storage_manager->GetDatabaseCount();
   for (oid_t database_offset = 0; database_offset < database_count;
@@ -237,9 +238,13 @@ void StatsAggregator::UpdateTableMetrics(storage::Database *database,
     auto deletes = table_access.GetDeletes();
     auto inserts = table_access.GetInserts();
 
+    auto table_memory = table_metrics->GetTableMemory();
+    auto memory_alloc = table_memory.GetAllocation();
+    auto memory_usage = table_memory.GetUsage();
+
     catalog::TableMetricsCatalog::GetInstance()->InsertTableMetrics(
-        database_oid, table_oid, reads, updates, deletes, inserts, time_stamp,
-        pool_.get(), txn);
+        database_oid, table_oid, reads, updates, deletes, inserts,
+        memory_alloc, memory_usage, time_stamp, pool_.get(), txn);
     LOG_TRACE("Table Metric Tuple inserted");
 
     UpdateIndexMetrics(database, table, time_stamp, txn);
@@ -273,7 +278,7 @@ void StatsAggregator::UpdateIndexMetrics(storage::Database *database,
 }
 
 void StatsAggregator::RunAggregator() {
-  LOG_DEBUG("Aggregator is now running.");
+  LOG_INFO("Aggregator is now running.");
   std::mutex mtx;
   std::unique_lock<std::mutex> lck(mtx);
   int64_t interval_cnt = 0;
@@ -286,7 +291,7 @@ void StatsAggregator::RunAggregator() {
          is_aggregating_) {
     Aggregate(interval_cnt, alpha, weighted_avg_throughput);
   }
-  LOG_DEBUG("Aggregator done!");
+  LOG_INFO("Aggregator done!");
 }
 
 StatsAggregator &StatsAggregator::GetInstance(int64_t aggregation_interval_ms) {
