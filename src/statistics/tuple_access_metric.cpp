@@ -13,7 +13,7 @@
 #include "catalog/catalog.h"
 #include "concurrency/transaction_manager_factory.h"
 #include "statistics/tuple_access_metric.h"
-#include "catalog/tuple_access_metrics_catalog.h"
+#include "catalog/transaction_metrics_catalog.h"
 
 namespace peloton {
 namespace stats {
