@@ -42,7 +42,10 @@ ThreadLevelStatsCollector::ThreadLevelStatsCollector() {
     RegisterMetric<DatabaseMetric>({StatsEventType::TXN_BEGIN,
                                     StatsEventType::TXN_COMMIT,
                                     StatsEventType::TXN_ABORT});
-
+//    RegisterMetric<TransactionMetric>({StatsEventType::TXN_BEGIN,
+//                                       StatsEventType::TXN_COMMIT,
+//                                       StatsEventType::TXN_ABORT,
+//                                       StatsEventType::TUPLE_READ});
   }
 }
 
